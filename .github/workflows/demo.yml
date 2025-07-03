@@ -32,9 +32,15 @@ jobs:
           path: |
             dist
             package.json
-  deploy:
-    needs: build
+  deploy:               # This step will run on a different machine
+    needs: build        # Required because artifact needs to be generated
     runs-on: ubuntu-latest
     steps:
+      - name: Get build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: dist-files
+      - name: Output contents
+        run: ls
       - name: Deploy
         run: echo "Deploying..."
