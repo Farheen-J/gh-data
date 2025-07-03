@@ -9,7 +9,13 @@ jobs:
     steps:
       - name: Get code
         uses: actions/checkout@v3
-      - name: Install dependencies
+      - name: Cache dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm  # Path of the folder that needs to be cached by github
+          key: deps-node-modules-${{ hashFiles('**/package-lock.json') }}         # Helps retrieve the cache, and discard it if needed
+          # **/package-lock.json all these files are collected and hash is created. If the lock file changes, new hash aka new cache, old cache discarded
+      - name: Install dependencies  # Above step cached it. If .npm is present, this step will reuse it else it will install it like usual
         run: npm ci
       - name: Lint code
         run: npm run lint
@@ -23,6 +29,11 @@ jobs:
     steps:
       - name: Get code
         uses: actions/checkout@v3
+      - name: Cache dependencies  # This is the same cache as above aka a central cache. It is not specific to the job
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm  
+          key: deps-node-modules-${{ hashFiles('**/package-lock.json') }}  
       - name: Install dependencies
         run: npm ci
       - name: Build website
