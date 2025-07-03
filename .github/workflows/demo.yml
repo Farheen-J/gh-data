@@ -18,6 +18,8 @@ jobs:
   build:
     needs: test
     runs-on: ubuntu-latest
+    outputs:
+      script-file: ${{ steps.publish.outputs.script-file }}   # Declare job output - steps.<id>.outputs.<variable name declared in id>
     steps:
       - name: Get code
         uses: actions/checkout@v3
@@ -25,6 +27,15 @@ jobs:
         run: npm ci
       - name: Build website
         run: npm run build # Produces artifacts
+      - name: Publish JS Filename # Job output task
+        id: publish # publish name is your choice, this is a unique id used in "outputs" attribute
+        run: find dist/assets/*.js -type f -execdir echo 'script-file={}' >> $GITHUB_OUTPUT ';'   # Outputs file name index.<number>.js - a file in dist/assets
+        # script-file is the any name of our choice
+        # ={} this is the value for script-file
+        # $GITHUB_OUTPUT - This targets a special file created by github in the environment where our job runs. This file has output variables 
+        #### OR ####
+        # run: find dist/assets/*.js -type f -execdir echo '::set-output name=script-file::{}' ';'
+        # Above is another way to set output - this will be deprecated
       - name: Upload artifacts  
         uses: actions/upload-artifact@v4 # We will use pre defined action here
         with: 
@@ -42,5 +53,7 @@ jobs:
           name: dist-files
       - name: Output contents
         run: ls
+      - name: Output filename
+        run: echo ${{ needs.build.outputs.script-file }} # needs contain the outputs of all the jobs that are defined as a dependency of the current job, in this case: build job
       - name: Deploy
         run: echo "Deploying..."
